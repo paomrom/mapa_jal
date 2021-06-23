@@ -1,0 +1,84 @@
+
+pacman::p_load(tidyverse, dplyr, readr, sf, gganimate, gifski, stringr, 
+               rebus, scales, gridExtra, readxl)
+
+
+#Esto es únicamente para SO de Mac, y es para añadir la tipografía Nutmeg
+#https://rpubs.com/Juve_Campos/fuentesEnRStudio
+fuentes_Sys <- list.files("~/Library/Fonts/") %>% 
+  str_remove_all(pattern = "." %R% capture(one_or_more(WRD)) %R% END)
+
+
+setwd("~/Google Drive")
+
+
+shp <- st_read(dsn = "/Volumes/GoogleDrive/Mi unidad/R-LadiesGDL/14m.shp", layer = "14m")
+
+
+st_geometry(shp)
+ggplot(data = shp)+
+  geom_sf()
+
+data <- read_excel("/Volumes/GoogleDrive/.shortcut-targets-by-id/1P9QAchUEBWrM1Lnrwc1BSUaUgM4hvlat/SISEMH/Mapas/data_EPI_ABS_10062020.xlsx")
+
+#Unir shapefile con csv
+sf_viola <- merge(shp, data, by.x = "NOMGEO", by.y = "Municipio", all.x = TRUE)
+
+
+sf_viola <- violacion %>%
+  mutate(Nivel=factor(Nivel,
+                      levels=c("Alta", "Alta - media", "Media","Baja", "Nula")))1º
+
+levels(sf_viola$Nivel)
+
+
+#Transformación a datos formato ts
+violacion<-gather(data = sf_viola, key = "Anio", value = "Nivel", 12:16)
+View(violacion)
+
+a<- ggplot(violacion %>%  filter(Anio == "2017")) +
+  geom_sf(aes(fill = Nivel)) +
+  labs(subtitle = "Año: 2017")+
+  theme_void()
+
+b<- ggplot(violacion %>%  filter(Anio == "2018")) +
+  geom_sf(aes(fill = Nivel)) +
+  labs(subtitle = "Año: 2018")+
+  theme_void()
+
+c <- ggplot(violacion %>%  filter(Anio == "2019")) +
+  geom_sf(aes(fill = Nivel)) +
+  labs(subtitle = "Año: 2019")+
+  theme_void()
+
+d <- ggplot(violacion %>%  filter(Anio == "2020")) +
+  geom_sf(aes(fill = Nivel)) +
+  labs(subtitle = "Año: 2020")+
+  theme_void()
+
+e <- ggplot(violacion %>%  filter(Anio == "2021")) +
+  geom_sf(aes(fill = Nivel)) +
+  labs(subtitle = "Año: 2021")+
+  theme_void()
+
+grid.arrange(a,b,c,d,e)
+
+
+g<-ggplot(violacion)+
+  geom_sf(aes(fill=Nivel))+
+  transition_manual(Anio)+
+  labs(subtitle = "", size=40,
+       title="Prevalencia del delito de 
+       Abuso Sexual Infantil en el año {current_frame}",
+       caption = "Elaboración propia con datos de la Fiscalía del estado de Jalisco. Las cifras pueden variar con el tiempo dado que son registros 
+       de carpetas de investigación que actualmente siguen en proceso de integración.")+
+  scale_fill_manual(values = c("#54278f", "#756bb1", "#9e9ac8", "#cbc9e2", "#f2f0f7"))+
+  theme_void()+ 
+  theme(
+    plot.title=element_text(family="Nutmeg-Black", size=24, hjust=0.5, face="bold", colour="#54278f", vjust=1),
+    plot.caption = element_text(family="Nutmeg-Light", size=10, hjust = 0),
+    legend.title = element_text(family="Nutmeg-Light", size=14),
+    legend.text = element_text(family="Nutmeg-Light", size=14),
+    plot.margin = margin(1, 1, 1, 1, "cm"))
+
+animate(g, 450, fps = 45, duration = 10, detail=15 ,width = 800, height = 600)
